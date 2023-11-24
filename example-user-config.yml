@@ -1,0 +1,47 @@
+#cloud-config
+
+# No ssh password auth, and never expire
+ssh_pwauth: false
+chpasswd:
+  expire: False
+
+# Sets passwordless sudo and ssh key for input user. Also sets no password login, only ssh.
+users:
+  - default
+  - name: YOUR_USERNAME_HERE
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    shell: /bin/bash
+    ssh_authorized_keys:
+    - ssh-rsa YOUR KEY HERE
+
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+
+runcmd:
+  - systemctl start qemu-guest-agent
+
+# Add for RHEL-based distros
+
+# Sets SELinux to permissive mode
+write_files:
+- encoding: b64
+  content: U0VMSU5VWD1wZXJtaXNzaXZlDQpTRUxJTlVYVFlQRT10YXJnZXRlZA0K
+  owner: root:root
+  path: /etc/sysconfig/selinux
+  permissions: '0644'
+  # Enables qemu-guest-exec command
+- encoding: b64 
+  content: QkxPQ0tfUlBDUz1ndWVzdC1maWxlLW9wZW4sZ3Vlc3QtZmlsZS1jbG9zZSxndWVzdC1maWxlLXJlYWQsZ3Vlc3QtZmlsZS13cml0ZSxndWVzdC1maWxlLXNlZWssZ3Vlc3QtZmlsZS1mbHVzaA0KRlNGUkVFWkVfSE9PS19QQVRITkFNRT0vZXRjL3FlbXUtZ2EvZnNmcmVlemUtaG9vaw0K
+  owner: root:root
+  path: /etc/sysconfig/qemu-ga
+  permissions: '0644'
+
+# Reboot to apply
+power_state:
+    delay: now
+    mode: reboot
+    message: Powering off
+    timeout: 2
+    condition: true
